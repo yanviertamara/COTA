@@ -5,6 +5,11 @@
  */
 package edu.cecar.vista;
 
+import edu.cecar.controlador.ControladorArchivos;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author Yanvier
@@ -14,6 +19,9 @@ public class PlayerAudio extends javax.swing.JFrame {
     /**
      * Creates new form PlayerAudio
      */
+    ControladorArchivos ca = new ControladorArchivos();
+    private List<File> audios = ca.getAudios();
+    
     public PlayerAudio() {
         initComponents();
     }

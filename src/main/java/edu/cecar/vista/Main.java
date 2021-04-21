@@ -94,6 +94,11 @@ public class Main extends javax.swing.JFrame {
 
         searchBtn.setText("Buscar");
         searchBtn.setEnabled(false);
+        searchBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                searchBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -202,8 +207,12 @@ public class Main extends javax.swing.JFrame {
             ControladorHilo hilo = new ControladorHilo(1, fileName,extension);
             executor.execute(hilo);
         }
-        executor.shutdown();
+        executor.shutdown();       
     }//GEN-LAST:event_processBtnActionPerformed
+
+    private void searchBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchBtnActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_searchBtnActionPerformed
 
     /**
      * @param args the command line arguments

@@ -64,6 +64,5 @@ public class ControladorConvertidor {
         helloVoice.deallocate();
 //don't forget to close the audioplayer otherwise file will not be saved
         audioPlayer.close();
-        System.exit(0);
     }
 }
