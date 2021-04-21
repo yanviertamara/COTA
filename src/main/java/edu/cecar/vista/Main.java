@@ -16,7 +16,17 @@
 package edu.cecar.vista;
 
 import edu.cecar.controlador.ControladorArchivos;
+import edu.cecar.controlador.ControladorHilo;
+import java.awt.Window;
 import java.io.File;
+import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import javax.swing.JFileChooser;
 
 /**
@@ -24,12 +34,14 @@ import javax.swing.JFileChooser;
  * 
  */
 public class Main extends javax.swing.JFrame {
-
+    
+    private ControladorArchivos ca = new ControladorArchivos();
+    private List<String> paths = ca.getPaths();   
     /** Creates new form Main */
     public Main() {
         initComponents();
     }
-
+    
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -40,36 +52,48 @@ public class Main extends javax.swing.JFrame {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        jTxtPath = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        pathTxt = new javax.swing.JTextField();
+        openFolderBtn = new javax.swing.JButton();
+        processBtn = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        searchTxt = new javax.swing.JTextField();
         jSeparator1 = new javax.swing.JSeparator();
         jLabel2 = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
+        searchBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("COTA");
 
         jLabel1.setText("Path: ");
 
-        jTxtPath.setEnabled(false);
+        pathTxt.setEnabled(false);
 
-        jButton1.setText("Abrir carpeta");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        openFolderBtn.setText("Abrir carpeta");
+        openFolderBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                openFolderBtnActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Procesar");
+        processBtn.setText("Procesar");
+        processBtn.setEnabled(false);
+        processBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                processBtnActionPerformed(evt);
+            }
+        });
 
         jButton3.setText("Ver audios");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Buscar palabra: ");
 
-        jButton4.setText("Buscar");
+        searchBtn.setText("Buscar");
+        searchBtn.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -80,7 +104,7 @@ public class Main extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(158, 158, 158)
-                        .addComponent(jButton2)
+                        .addComponent(processBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton3))
                     .addGroup(layout.createSequentialGroup()
@@ -89,17 +113,17 @@ public class Main extends javax.swing.JFrame {
                                 .addContainerGap()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(searchTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 276, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTxtPath, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(pathTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1))
+                                .addComponent(openFolderBtn))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(165, 165, 165)
-                                .addComponent(jButton4)))
+                                .addComponent(searchBtn)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -109,12 +133,12 @@ public class Main extends javax.swing.JFrame {
                 .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(jTxtPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(pathTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(openFolderBtn))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jButton2)
+                        .addComponent(processBtn)
                         .addGap(19, 19, 19))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jButton3)
@@ -122,39 +146,64 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(searchTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addGap(18, 18, 18)
-                .addComponent(jButton4)
+                .addComponent(searchBtn)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void openFolderBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openFolderBtnActionPerformed
         
-        ControladorArchivos ca = new ControladorArchivos();
 
         JFileChooser fc = new JFileChooser();
-        //Mostrar la ventana para abrir archivo y recoger la respuesta
-        //En el parámetro del showOpenDialog se indica la ventana
-        //  al que estará asociado. Con el valor this se asocia a la
-        //  ventana que la abre.
         File path = null;
+        
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
         int respuesta = fc.showOpenDialog(this);
-        //Comprobar si se ha pulsado Aceptar
+        
         if (respuesta == JFileChooser.APPROVE_OPTION) {
-            //Crear un objeto File con el archivo elegido
             File archivoElegido = fc.getSelectedFile();
-            //Mostrar el nombre del archvivo en un campo de texto
-            jTxtPath.setText(archivoElegido.getAbsolutePath());
+            pathTxt.setText(archivoElegido.getAbsolutePath());
             path = archivoElegido;
         }
  
         ca.listFiles(path);
-    }//GEN-LAST:event_jButton1ActionPerformed
+        
+        if(!paths.isEmpty()){
+            processBtn.setEnabled(true);
+        }
+    }//GEN-LAST:event_openFolderBtnActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        try {
+            // TODO add your handling code here:
+            Runtime.getRuntime().exec("explorer.exe /open, audios");
+        } catch (IOException ex) {
+            
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void processBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_processBtnActionPerformed
+        // TODO add your handling code here:
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-1);
+        
+        for(String fileName:paths){
+            
+            System.out.println("path:"+fileName);
+            String fn[] = fileName.split("\\.");
+            String extension = fn[1];
+            
+            
+            ControladorHilo hilo = new ControladorHilo(1, fileName,extension);
+            executor.execute(hilo);
+        }
+        executor.shutdown();
+    }//GEN-LAST:event_processBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -192,15 +241,15 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTxtPath;
+    private javax.swing.JButton openFolderBtn;
+    private javax.swing.JTextField pathTxt;
+    private javax.swing.JButton processBtn;
+    private javax.swing.JButton searchBtn;
+    private javax.swing.JTextField searchTxt;
     // End of variables declaration//GEN-END:variables
 
 }

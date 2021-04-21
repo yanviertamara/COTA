@@ -24,13 +24,14 @@ import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-
 
 /**
  *
@@ -38,7 +39,15 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
  */
 public class ControladorArchivos {
 
-    private List<String> paths = new ArrayList();
+    List<String> paths = new ArrayList();
+
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
 
     public void listFiles(File path) {
         try {
@@ -49,41 +58,27 @@ public class ControladorArchivos {
                     System.out.println("directorio:" + nameFile);
                     listFiles(file);
                 } else if (nameFile.contains(".txt") || nameFile.contains(".dat") || nameFile.contains(".doc") || nameFile.contains(".docx")) {
+                    System.out.println("     archivo:" + nameFile);
                     paths.add(nameFile);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "No se ha seleccionado un directorio valido");
         }
     }
 
-    public synchronized void convertTextVoice() {   
-        ControladorConvertidor cc = new ControladorConvertidor();
+    public synchronized void convertTextVoice(String nameFile, String extension, List<String> files) {
         
-        for(String nameFile : paths) {
-            System.out.println("     archivo:" + nameFile);
+        ControladorConvertidor cc = new ControladorConvertidor();
 
-            File file = new File(nameFile);
-            if (nameFile.contains(".doc")) {
-                
-                try {
-                    InputStream doc = new FileInputStream(file);
-                    WordExtractor we = new WordExtractor(doc);                    
-                    String text = we.getText();
-                    String filename = getFilename(nameFile);
-                    cc.convertidorAudio(filename, text);
-                } catch (FileNotFoundException ex) {
-                    System.out.println("Archivo no encontrado");
-                } catch (IOException ex) {
-                    System.out.println("Hubo un error al leer el archivo");
-                }
+        File file = new File(nameFile);
 
-            }
-            
-            if (nameFile.contains(".docx")) {
+        switch (extension) {
+            case "docx":
+                System.out.println("     leyendo:" + nameFile + " Extension:" + extension);
                 try {
                     InputStream docx = new FileInputStream(file);
-                    XWPFWordExtractor xwpf_we = new XWPFWordExtractor(new XWPFDocument(docx));                    
+                    XWPFWordExtractor xwpf_we = new XWPFWordExtractor(new XWPFDocument(docx));
                     String text = xwpf_we.getText();
                     String filename = getFilename(nameFile);
                     cc.convertidorAudio(filename, text);
@@ -92,125 +87,163 @@ public class ControladorArchivos {
                 } catch (IOException ex) {
                     System.out.println("Hubo un error al leer el archivo");
                 }
-            }
-            
-            if (nameFile.contains(".dat")||nameFile.contains(".txt")) {
-                String fileContent = "";
-
+                break;
+            case "doc":
+                System.out.println("     leyendo:" + nameFile + " Extension:" + extension);
                 try {
-                    //make filereader object to read the file
-                    FileReader fileR = new FileReader(nameFile);
-                    //create bufferreader to wrap the file 
-                    BufferedReader fileStream = new BufferedReader(fileR);
-
-                    String temp = fileStream.readLine();
-                    while (temp != null) {
-                        fileContent = fileContent + " " + temp;
-                        temp = fileStream.readLine();
-
-                    }
-                    fileStream.close();
-                    String text = temp;
+                    InputStream doc = new FileInputStream(file);
+                    WordExtractor we = new WordExtractor(doc);
+                    String text = we.getText();
                     String filename = getFilename(nameFile);
                     cc.convertidorAudio(filename, text);
-                } catch (FileNotFoundException e) {
-
+                } catch (FileNotFoundException ex) {
                     System.out.println("Archivo no encontrado");
-                } catch (IOException e) {
+                } catch (IOException ex) {
                     System.out.println("Hubo un error al leer el archivo");
                 }
-            }
-            /*if(nameFile.contains(".txt")){
-                
-            }*/
+                break;
+
+            case "dat":
+                System.out.println("     leyendo:" + nameFile + " Extension:" + extension);
+                FileReader f = null;
+                try {
+                    String content = "";
+                    String cadena;
+                    f = new FileReader(nameFile);
+                    BufferedReader b = new BufferedReader(f);
+                    while ((cadena = b.readLine()) != null) {
+                        System.out.println(cadena);
+                        content = content + " " + cadena;
+
+                    }
+                    b.close();
+
+                    String filename = getFilename(nameFile);
+                    String text = content;
+
+                    cc.convertidorAudio(filename, text);
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(ControladorArchivos.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(ControladorArchivos.class.getName()).log(Level.SEVERE, null, ex);
+                } finally {
+                    try {
+                        f.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ControladorArchivos.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                break;
+            case "txt":
+                System.out.println("     leyendo:" + nameFile + " Extension:" + extension);
+                Scanner scanner;
+                try {
+                    //se pasa el flujo al objeto scanner
+                    scanner = new Scanner(file);
+                    String content = "";
+                    while (scanner.hasNextLine()) {
+                        // el objeto scanner lee linea a linea desde el archivo
+                        String linea = scanner.nextLine();
+                        content = content + " " + linea;
+
+                    }
+                    //se cierra el ojeto scanner
+                    scanner.close();
+                    String filename = getFilename(nameFile);
+                    String text = content;
+
+                    cc.convertidorAudio(filename, text);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
     }
-    
-    public synchronized List<File> searchTextVoice(String search) {
+
+    public synchronized List<File> searchTextVoice(String search, String nameFile) {
         List<File> audios = new ArrayList();
-        for(String nameFile : paths) {
 
-            System.out.println("     archivo:" + nameFile);
+        System.out.println("     archivo:" + nameFile);
 
-            File file = new File(nameFile);
-            if (nameFile.contains(".doc")) {
-                
-                try {
-                    InputStream doc = new FileInputStream(file);
-                    WordExtractor we = new WordExtractor(doc);                    
-                    String text = we.getText();
-                    if(text.contains(search)){
-                        audios.add(searchAudio(nameFile));
-                    }
-                } catch (FileNotFoundException ex) {
-                    System.out.println("Archivo no encontrado");
-                } catch (IOException ex) {
-                    System.out.println("Hubo un error al leer el archivo");
+        File file = new File(nameFile);
+        if (nameFile.contains(".doc")) {
+
+            try {
+                InputStream doc = new FileInputStream(file);
+                WordExtractor we = new WordExtractor(doc);
+                String text = we.getText();
+                if (text.contains(search)) {
+                    audios.add(searchAudio(nameFile));
                 }
-
+            } catch (FileNotFoundException ex) {
+                System.out.println("Archivo no encontrado");
+            } catch (IOException ex) {
+                System.out.println("Hubo un error al leer el archivo");
             }
-            
-            if (nameFile.contains(".docx")) {
-                try {
-                    InputStream docx = new FileInputStream(file);
-                    XWPFWordExtractor xwpf_we = new XWPFWordExtractor(new XWPFDocument(docx));                    
-                    String text = xwpf_we.getText();
-                    if(text.contains(search)){
-                        audios.add(searchAudio(nameFile));
-                    }
-                } catch (FileNotFoundException ex) {
-                    System.out.println("Archivo no encontrado");
-                } catch (IOException ex) {
-                   System.out.println("Hubo un error al leer el archivo");
+
+        }
+
+        if (nameFile.contains(".docx")) {
+            try {
+                InputStream docx = new FileInputStream(file);
+                XWPFWordExtractor xwpf_we = new XWPFWordExtractor(new XWPFDocument(docx));
+                String text = xwpf_we.getText();
+                if (text.contains(search)) {
+                    audios.add(searchAudio(nameFile));
                 }
+            } catch (FileNotFoundException ex) {
+                System.out.println("Archivo no encontrado");
+            } catch (IOException ex) {
+                System.out.println("Hubo un error al leer el archivo");
             }
-            
-            if (nameFile.contains(".dat")||nameFile.contains(".txt")) {
-                String fileContent = "";
+        }
 
-                try {
-                    //make filereader object to read the file
-                    FileReader fileR = new FileReader(nameFile);
-                    //create bufferreader to wrap the file 
-                    BufferedReader fileStream = new BufferedReader(fileR);
+        if (nameFile.contains(".dat") || nameFile.contains(".txt")) {
+            String fileContent = "";
 
-                    String temp = fileStream.readLine();
-                    while (temp != null) {
-                        fileContent = fileContent + " " + temp;
-                        temp = fileStream.readLine();
+            try {
+                //make filereader object to read the file
+                FileReader fileR = new FileReader(nameFile);
+                //create bufferreader to wrap the file 
+                BufferedReader fileStream = new BufferedReader(fileR);
 
-                    }
-                    fileStream.close();
-                    String text = temp;
-                    if(text.contains(search)){
-                        audios.add(searchAudio(nameFile));
-                    }
-                } catch (FileNotFoundException e) {
-                    System.out.println("Archivo no encontrado");
-                } catch (IOException e) {
-                    System.out.println("Hubo un error al leer el archivo");
+                String temp = fileStream.readLine();
+                while (temp != null) {
+                    fileContent = fileContent + " " + temp;
+                    temp = fileStream.readLine();
+
                 }
+                fileStream.close();
+                String text = temp;
+                if (text.contains(search)) {
+                    audios.add(searchAudio(nameFile));
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("Archivo no encontrado");
+            } catch (IOException e) {
+                System.out.println("Hubo un error al leer el archivo");
             }
-            /*if(nameFile.contains(".txt")){
+        }
+        /*if(nameFile.contains(".txt")){
                 
             }*/
-        }
+
         return audios;
     }
-    
-    public String getFilename(String path){
-		int i = path.lastIndexOf('\\');
-		String fe = path.substring(i+1);                
-                String fn[] = fe.split("\\.");
-                String name = fn[0];
-                return name;
+
+    public String getFilename(String path) {
+        int i = path.lastIndexOf('\\');
+        String fe = path.substring(i + 1);
+        String fn[] = fe.split("\\.");
+        String name = fn[0];
+        return name;
     }
-    
-    public File searchAudio(String audioName){
+
+    public File searchAudio(String audioName) {
         File audios[] = new File("audios").listFiles();
         for (File audio : audios) {
             String name = audio.getName();
-            if(name.contains(audioName)){
+            if (name.contains(audioName)) {
                 return audio;
             }
         }

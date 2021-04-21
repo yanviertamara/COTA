@@ -27,7 +27,7 @@ import javax.sound.sampled.AudioFileFormat;
  * 
  */
 public class ControladorConvertidor {
-    public void convertidorAudio(String fileName, String text){
+    public synchronized void convertidorAudio(String fileName, String text){
          System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
         // listAllVoices();
         FreeTTS freetts;
