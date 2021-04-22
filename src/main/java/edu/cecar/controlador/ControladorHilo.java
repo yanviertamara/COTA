@@ -14,11 +14,8 @@
  */
 package edu.cecar.controlador;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
- *
+ * Clase que controla los hilos del programa
  *
  */
 public class ControladorHilo implements Runnable {
@@ -28,21 +25,25 @@ public class ControladorHilo implements Runnable {
     private String nameFile;
     private String extension;
 
-    ControladorArchivos ca = new ControladorArchivos();
+    private ControladorArchivos ca = new ControladorArchivos();
 
+    public ControladorHilo() {
+    }
+    
     public ControladorHilo(int option, String name, String ext) {
         op = option;
         nameFile = name;
         extension = ext;
     }
 
-    public ControladorHilo(String word, int option, String name, String ext) {
+    public ControladorHilo(int option, String word, String name, String ext) {
         op = option;
         search = word;
         nameFile = name;
         extension = ext;
     }
 
+    
     @Override
     public void run() {
         switch (op) {

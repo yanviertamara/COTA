@@ -23,7 +23,7 @@ import com.sun.speech.freetts.audio.SingleFileAudioPlayer;
 import javax.sound.sampled.AudioFileFormat;
 
 /**
- *
+ * Clase que controla el convertidor de texto a voz(FREETTS)
  * 
  */
 public class ControladorConvertidor {
