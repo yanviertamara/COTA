@@ -46,6 +46,7 @@ public class ControladorHilo implements Runnable {
     
     @Override
     public void run() {
+        System.out.println(Thread.currentThread().getName());
         switch (op) {
             case 1:
                 ca.convertTextVoice(nameFile, extension);
@@ -53,7 +54,7 @@ public class ControladorHilo implements Runnable {
             case 2:
                 ca.searchTextVoice(search, nameFile, extension);
                 break;
-        }
+        }        
     }
 
 }
